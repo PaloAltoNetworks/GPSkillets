@@ -1,0 +1,61 @@
+
+<entry name="{{ gateway_name }}">
+          <roles>
+            <entry name="default">
+              <login-lifetime>
+                <days>30</days>
+              </login-lifetime>
+              <inactivity-logout>
+                <hours>3</hours>
+              </inactivity-logout>
+              <disconnect-on-idle>
+                <minutes>180</minutes>
+              </disconnect-on-idle>
+            </entry>
+          </roles>
+          <client-auth>
+            <entry name="default">
+              <os>Any</os>
+              <authentication-profile>GP_Local_Users</authentication-profile>
+              <authentication-message>Enter login credentials</authentication-message>
+              <username-label>Username</username-label>
+              <password-label>Password</password-label>
+            </entry>
+          </client-auth>
+          <remote-user-tunnel-configs>
+            <entry name="default">
+              <split-tunneling>
+                <include-domains>
+                  <list/>
+                </include-domains>
+                <exclude-domains>
+                  <list/>
+                </exclude-domains>
+                <access-route>
+                  <member>0.0.0.0/0</member>
+                </access-route>
+                <exclude-access-route/>
+                <include-applications/>
+                <exclude-applications/>
+              </split-tunneling>
+              <authentication-override>
+                <generate-cookie>no</generate-cookie>
+              </authentication-override>
+              <source-user>
+                <member>any</member>
+              </source-user>
+              <authentication-server-ip-pool/>
+              <ip-pool>
+                <member>{{ user_ip_pool }}</member>
+              </ip-pool>
+              <os>
+                <member>any</member>
+              </os>
+              <retrieve-framed-ip-address>no</retrieve-framed-ip-address>
+              <no-direct-access-to-local-network>no</no-direct-access-to-local-network>
+            </entry>
+          </remote-user-tunnel-configs>
+             <remote-user-tunnel>{{ tunnel_name }}</remote-user-tunnel>
+          <ssl-tls-service-profile>{{ ssl_tls_service_profile }}</ssl-tls-service-profile>
+          <tunnel-mode>yes</tunnel-mode>
+</entry>

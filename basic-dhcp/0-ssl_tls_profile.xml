@@ -1,0 +1,7 @@
+<entry name="{{ ssl_tls_service_profile }}">
+  <protocol-settings>
+    <min-version>tls1-0</min-version>
+    <max-version>max</max-version>
+  </protocol-settings>
+  <certificate >{{ Server_certificate }}</certificate>
+</entry>

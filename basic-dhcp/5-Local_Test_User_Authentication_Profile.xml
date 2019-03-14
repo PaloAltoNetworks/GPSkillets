@@ -1,0 +1,12 @@
+<entry name="GP_Local_Users">
+    <multi-factor-auth>
+        <mfa-enable>no</mfa-enable>
+    </multi-factor-auth>
+    <method>
+        <local-database/>
+    </method>
+    <allow-list>
+        <member>all</member>
+    </allow-list>
+</entry>
+

@@ -1,0 +1,8 @@
+<entry name="{{ tunnel_zone }}">
+  <network>
+    <layer3>
+      <member>{{ tunnel_name }}</member>
+    </layer3>
+  </network>
+  <enable-user-identification>yes</enable-user-identification>
+</entry>

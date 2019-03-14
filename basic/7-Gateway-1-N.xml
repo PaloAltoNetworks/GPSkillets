@@ -1,0 +1,26 @@
+ <entry name="{{ gateway_name }}-N">
+  <local-address>
+    <ip>
+      <ipv4>{{ gateway_ip }}</ipv4>
+    </ip>
+    <interface>{{ gateway_intf }}</interface>
+  </local-address>
+  <client>
+    <exclude-video-traffic>
+      <applications/>
+      <enabled>no</enabled>
+    </exclude-video-traffic>
+     <dns-server>
+       <primary>8.8.8.8</primary>
+     </dns-server>
+  </client>
+  <ipsec>
+    <third-party-client>
+      <enable>no</enable>
+    </third-party-client>
+  </ipsec>
+  <ip-pool/>
+  <tunnel-interface>{{ tunnel_name }}</tunnel-interface>
+</entry>
+
+

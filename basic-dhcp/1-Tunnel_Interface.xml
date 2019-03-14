@@ -1,0 +1,10 @@
+<tunnel>
+    <units>
+        <entry name="{{ tunnel_name }}">
+            <ip>
+                <entry name="{{ tunnel_ip_address }}"/>
+            </ip>
+            <comment>Tunnel interface added by Panhandler Snippet</comment>
+        </entry>
+    </units>
+</tunnel>

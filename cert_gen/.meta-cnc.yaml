@@ -1,0 +1,42 @@
+# text template for CLI to generate root CA and GP cert
+
+name: root_cert_gen_v90
+
+# label used for menu selection
+label: v9.0 Text-based CLI Cert Gen commands
+description: Commands to create a local cert root authority and child GP cert
+dependency:
+
+# type of device configuration
+type: template
+
+# grouping of like snippets for dynamic menu creation in pan-cnc
+labels:
+  service_type: globalprotect
+  collection: globalprotect
+
+# variables used in the configuration templates
+# type_hint defines the form field type in panhandler
+
+variables:
+  - name: ca_cert_name
+    description: cert name for CA root auth in the NGFW
+    default: GP_root
+    type_hint: text
+  - name: ca_cert_fqdn
+    description: cert ip or fqdn for the ca cert
+    default: GP_root
+    type_hint: text
+  - name: gp_cert_name
+    description: cert name for GP sessions
+    default: GP_cert
+    type_hint: text
+  - name: gp_cert_fqdn
+    description: cert ip or fqdn for GP gateway connectivity
+    default: gp.skillets.com
+    type_hint: text
+
+
+snippets:
+    - name: cert_gen
+      file: cert-gen.conf
