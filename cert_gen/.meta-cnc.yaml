@@ -3,7 +3,7 @@
 name: root_cert_gen_v90
 
 # label used for menu selection
-label: v9.0 Text-based CLI Cert Gen commands
+label: v9.0 Cert Generation using CLI set commands
 description: Commands to create a local cert root authority and child GP cert
 dependency:
 

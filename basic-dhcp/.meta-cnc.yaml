@@ -4,8 +4,8 @@
 name: Basic_GP_Configuration_dhcp_v90
 
 # label used for menu selection
-label: v9.0 Basic GlobalProtect with DHCP Untrust Intf
-description: Basic GlobalProtect configuration with DHCP untrust interface and local user DB
+label: v9.0 GlobalProtect Basic with DHCP Untrust Intf
+description: GlobalProtect basic configuration with DHCP untrust interface and local user DB
 dependency:
 
 # type of device configuration
