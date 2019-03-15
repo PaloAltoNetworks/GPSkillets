@@ -131,3 +131,7 @@ snippets:
     - name: Rulebase
       xpath: /config/devices/entry[@name='localhost.localdomain']/vsys/entry[@name='vsys1']/rulebase/security/rules
       file: 9-Rulebase.xml
+# Source NAT for the tunnel zone
+  - name: nat-source-nat-to-untrust
+    xpath: /config/devices/entry[@name='localhost.localdomain']/vsys/entry[@name='vsys1']/rulebase/nat
+    file: source_nat_to_untrust.xml

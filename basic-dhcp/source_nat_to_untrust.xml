@@ -1,0 +1,24 @@
+<rules> 
+    <entry name="GP Source NAT to Untrust">
+      <source-translation>
+        <dynamic-ip-and-port>
+          <interface-address>
+            <interface>{{ gateway_intf }}</interface>
+          </interface-address>
+        </dynamic-ip-and-port>
+      </source-translation>
+      <to>
+        <member>{{ Untrusted_zone }}</member>
+      </to>
+      <from>
+        <member>{{ tunnel_zone }}</member>
+      </from>
+      <source>
+        <member>any</member>
+      </source>
+      <destination>
+        <member>any</member>
+      </destination>
+      <service>any</service>
+    </entry>
+</rules>
