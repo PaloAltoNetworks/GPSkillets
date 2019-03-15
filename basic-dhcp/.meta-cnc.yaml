@@ -134,4 +134,4 @@ snippets:
 # Source NAT for the tunnel zone
   - name: nat-source-nat-to-untrust
     xpath: /config/devices/entry[@name='localhost.localdomain']/vsys/entry[@name='vsys1']/rulebase/nat
-    file: source_nat_to_untrust.xml
+    file: 10-NAT-policy.xml
