@@ -19,7 +19,7 @@ labels:
 # type_hint defines the form field type in panhandler
 
 variables:
-  - name: ca_cert_name
+  - name: trusted_CA
     description: cert name for CA root auth in the NGFW
     default: GP_root
     type_hint: text
@@ -31,11 +31,10 @@ variables:
     description: cert name for GP sessions
     default: GP_cert
     type_hint: text
-  - name: gp_cert_fqdn
+  - name: Server_certificate
     description: cert ip or fqdn for GP gateway connectivity
     default: gp.skillets.com
     type_hint: text
-
 
 snippets:
     - name: cert_gen
