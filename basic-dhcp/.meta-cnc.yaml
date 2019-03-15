@@ -32,7 +32,7 @@ variables:
     default: GP_Root_CA
     type_hint: text
   - name: Server_certificate
-    description: SSL Server Certificate FQDN (must match gateway FQDN)
+    description: SSL Server Certificate name
     default: GP_Server
     type_hint: text
 
