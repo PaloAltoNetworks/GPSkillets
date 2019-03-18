@@ -4,8 +4,8 @@
 name: Basic_GP_Configuration_dhcp_v90
 
 # label used for menu selection
-label: v9.0 Basic GlobalProtect with DHCP Untrust Intf
-description: Basic GlobalProtect configuration with DHCP untrust interface and local user DB
+label: v9.0 GlobalProtect Basic with DHCP Untrust Intf
+description: GlobalProtect basic configuration with DHCP untrust interface and local user DB
 dependency:
 
 # type of device configuration
@@ -21,10 +21,50 @@ labels:
 # type_hint defines the form field type in pan-cnc
 
 variables:
+
+# Cert and auth profile values
+  - name: ssl_tls_service_profile
+    description: Gateway-1 and Portal-1 - SSL TLS Service Profile
+    default: ssl_tls_service_profile
+    type_hint: text
+  - name: trusted_CA
+    description: Portal-1 - Trusted certificate of authority
+    default: GP_Root_CA
+    type_hint: text
   - name: Server_certificate
-    description: SSL Server Certificate - manually generated
+    description: SSL Server Certificate name
     default: GP_Server
     type_hint: text
+
+# Portal values
+  - name: portal_name
+    description: Portal-1 - Reference name for the GP portal
+    default: Portal-1
+    type_hint: text
+  - name: portal_intf
+    description: Portal-1 - Interface mapped to the GP portal
+    default: ethernet1/1
+    type_hint: text
+
+# Gateway values
+  - name: gateway_name
+    description: Gateway-1 - Reference name for the GP gateway
+    default: Gateway-1
+    type_hint: text
+  - name: gateway_intf
+    description: Interface mapped to the GP gateway (ethernet1/n)
+    default: ethernet1/1
+    type_hint: text
+  - name: gateway_fqdn
+    description: FQDN used for gateway access (must match server cert FQDN)
+    default: gp.fqdn.com
+    type_hint: text
+  - name: user_ip_pool
+    description: Gateway-1 - IP pool assigned to GP users
+    default: 10.10.10.2-10.10.10.100
+    type_hint: text
+
+# tunnel parameters
   - name: tunnel_name
     description: Tunnel Interface - tunnel interface name
     default: tunnel.100
@@ -37,61 +77,20 @@ variables:
     description: Virtual Router used for GP tunnel interface
     default: default
     type_hint: text
-# Gateway-1
-  - name: agent_ip_pool
-    description: Gateway-1 - pool of IPs given to agents
-    default: 10.10.10.10-10.10.10.100
-    type_hint: text
-  - name: ssl_tls_service_profile
-    description: Gateway-1 and Portal-1 - SSL TLS Service Profile
-    default: ssl_tls_service_profile
-    type_hint: text
-  - name: trusted_CA
-    description: Portal-1 - Trusted certificate of authority
-    default: GP_Root_CA
-    type_hint: text
-  - name: gateway_name
-    description: Gateway-1 - Reference name for the GP gateway
-    default: Gateway-1
-    type_hint: text
-  - name: gateway_intf
-    description: Interface mapped to the GP gateway (ethernet1/n)
-    default: ethernet1/1
-    type_hint: text
-  - name: gateway_fqdn
-    description: FQDN used for gateway access
-    default: gp.fqdn.com
-    type_hint: text
-  - name: user_ip_pool
-    description: Gateway-1 - IP pool assigned to GP users
-    default: 10.10.10.2-10.10.10.100
-    type_hint: text
   - name: tunnel_zone
     description: Zone used for the GlobalProtect tunnel interface
     default: GP_zone
     type_hint: text
   - name: Trusted_zone
-    description: Name of the trusted zone
+    description: Name of the trusted zone to allow tunnel zone access
     default: Trust
     type_hint: text
   - name: Untrusted_zone
-    description: Name ofd the untrusted zone
+    description: Name of the untrusted zone to allow tunnel zone access
     default: Untrust
-    type_hint: text
-  - name: portal_name
-    description: Portal-1 - Reference name for the GP portal
-    default: Portal-1
-    type_hint: text
-  - name: portal_intf
-    description: Portal-1 - Interface mapped to the GP portal
-    default: ethernet1/1
     type_hint: text
 
 snippets:
-# Creation of self-signed certificates for this template - in test - Creates the certificates but they are invalid
-#    - name: create_certificates
-#      xpath: /config/shared/certificate
-#      file: 0-Generate_Certificates.xml
 # SSL/TLS Service Profile
     - name: ssl_tls_profile
       xpath: /config/shared/ssl-tls-service-profile
@@ -132,3 +131,7 @@ snippets:
     - name: Rulebase
       xpath: /config/devices/entry[@name='localhost.localdomain']/vsys/entry[@name='vsys1']/rulebase/security/rules
       file: 9-Rulebase.xml
+# Source NAT for the tunnel zone
+    - name: nat-source-nat-to-untrust
+      xpath: /config/devices/entry[@name='localhost.localdomain']/vsys/entry[@name='vsys1']/rulebase/nat
+      file: 10-NAT-policy.xml

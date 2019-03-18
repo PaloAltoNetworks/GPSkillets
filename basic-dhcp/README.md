@@ -1,4 +1,4 @@
-# Basic GlobalProtect Configuration
+# Basic GlobalProtect Configuration for DHCP Untrust Internet
 
 This skillet configures the GlobalProtect portal and gateway using a
 local database for user authentication.
@@ -11,6 +11,10 @@ local database for user authentication.
 * Tunnel termination into a GP security zone
 
 * Gateway and Portal configuration
+
+* Use of FQDN for the GP cert and gateway pointers
+
+* Security policy and source NAT for the tunnel zone
 
 
 ### Prerequisites
@@ -26,6 +30,8 @@ local database for user authentication.
 * Trust (ethernet1/2) and Untrust (ethernet1/2) zones for tunnel security policy
 
 * Virtual router configuration used for tunnel association
+
+* Local user configuration
 
 
 
