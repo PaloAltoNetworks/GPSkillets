@@ -145,7 +145,7 @@ snippets:
         <certificate>
           <generate>
             <certificate-name>{{ machine_cert_name }}</certificate-name>
-            <name>{{ portal_cert_fqdn }}</name>
+            <name>{{ machine_cert_name }}</name>
             <algorithm>
               <RSA>
                 <rsa-nbits>2048</rsa-nbits>
