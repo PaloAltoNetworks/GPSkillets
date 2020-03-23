@@ -1,4 +1,4 @@
-# 9.0 Remote Access VPN Quick Config
+# 9.0 Remote Access VPN Quick Config using Set Commands
 
 ## Overview
 
@@ -15,4 +15,4 @@ This skillet assumes no config exists on the firewall.
 
 ## Usage
 
-Run the skillet, then download/activate the desired GlobalProtect client on the gateway.
+Run the skillet, copy/paste set commands into the CLI, then download/activate the desired GlobalProtect client on the gateway.
