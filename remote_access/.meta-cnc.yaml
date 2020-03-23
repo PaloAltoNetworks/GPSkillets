@@ -1,0 +1,904 @@
+name: 9.0_remote_access
+
+# label used for menu selection
+label: 9.0 Remote Access VPN configuration
+description: Remote Access VPN per GlobalProtect Quick Configs
+dependency:
+
+# type of device configuration
+type: panos
+
+# grouping of like snippets for dynamic menu creation in pan-cnc
+labels:
+  service_type: globalprotect
+  collection: globalprotect
+
+variables:
+  - name: ca_cert_name
+    description: Certificate name for self-signed CA cert
+    default: GlobalProtect_CA
+    type_hint: text
+
+  - name: portal_cert_name
+    description: Certificate name for GlobalProtect portal cert
+    default: GlobalProtect_Portal
+    type_hint: text
+
+  - name: portal_cert_fqdn
+    description: Certificate FQDN for GlobalProtect portal cert
+    default: gp.acme.com
+    type_hint: text
+
+  - name: trust_if
+    description: Trusted interface name
+    default: ethernet1/1
+    type_hint: text
+
+  - name: trust_if_ip
+    description: Trusted interface IP address/netmask
+    default: 192.168.45.20/24
+    type_hint: text
+
+  - name: trust_zone
+    description: Trusted zone name
+    default: l3-trust
+    type_hint: text
+
+  - name: untrust_if
+    description: Untrusted interface name
+    default: ethernet1/2
+    type_hint: text
+
+  - name: untrust_if_ip
+    description: Untrusted interface IP address/netmask
+    default: 192.168.55.20/24
+    type_hint: text
+
+  - name: untrust_zone
+    description: Untrusted zone name
+    default: l3-untrust
+    type_hint: text
+
+  - name: vpn_zone
+    description: VPN zone name
+    default: corp-vpn
+    type_hint: text
+
+  - name: vpn_tunnel_if
+    description: GlobalProtect tunnel interface name
+    default: tunnel.2
+    type_hint: text
+
+  - name: vpn_tunnel_ip
+    description: GlobalProtect interface IP address/netmask
+    default: 10.31.32.1/24
+    type_hint: text
+
+  - name: vpn_tunnel_ip_pool
+    description: GlobalProtect user IP pool
+    default: 10.31.32.3-10.31.32.118
+    type_hint: text
+
+  - name: default_gateway
+    description: Default gateway for virtual router default
+    default: 192.168.55.2
+    type_hint: text
+
+  - name: dns_server_primary
+    description: Primary DNS server distributed to GP users
+    default: 8.8.8.8
+    type_hint: text
+
+  - name: dns_server_secondary
+    description: Secondary DNS server distributed to GP users
+    default: 8.8.4.4
+    type_hint: text
+
+  - name: gpuser1_password
+    descriptions: Password for local user gpuser1
+    default: gpuser1
+    type_hint: text
+
+snippets:
+  - name: ca_cert_gen
+    cmd: op
+    cmd_str: |-
+      <request>
+        <certificate>
+          <generate>
+            <ca>yes</ca>
+            <certificate-name>{{ ca_cert_name }}</certificate-name>
+            <name>{{ ca_cert_name }}</name>
+            <algorithm>
+              <RSA>
+                <rsa-nbits>2048</rsa-nbits>
+              </RSA>
+            </algorithm>
+          </generate>
+        </certificate>
+      </request>
+
+  - name: ca_cert_gen
+    cmd: op
+    cmd_str: |-
+      <request>
+        <certificate>
+          <generate>
+            <certificate-name>{{ portal_cert_name }}</certificate-name>
+            <name>{{ portal_cert_fqdn }}</name>
+            <algorithm>
+              <RSA>
+                <rsa-nbits>2048</rsa-nbits>
+              </RSA>
+            </algorithm>
+            <digest>sha256</digest>
+            <ca>no</ca>
+            <signed-by>{{ ca_cert_name }}</signed-by>
+          </generate>
+        </certificate>
+      </request>
+
+  - name: ssl-tls-service-profile-907091
+    xpath: /config/shared
+    element: |-
+      <ssl-tls-service-profile>
+        <entry name="GlobalProtect">
+          <protocol-settings>
+            <min-version>tls1-2</min-version>
+            <max-version>max</max-version>
+          </protocol-settings>
+          <certificate>{{ portal_cert_name }}</certificate>
+        </entry>
+      </ssl-tls-service-profile>
+
+  - name: corp-ldap-example
+    xpath: /config/shared
+    element: |-
+      <server-profile>
+        <ldap>
+          <entry name="dc.acme.local">
+            <server>
+              <entry name="dc-1">
+                <address>10.0.0.246</address>
+                <port>389</port>
+              </entry>
+              <entry name="dc-2">
+                <address>10.0.0.247</address>
+                <port>389</port>
+              </entry>
+            </server>
+            <ldap-type>active-directory</ldap-type>
+            <bind-dn>admin@acme.local</bind-dn>
+            <bind-password>-AQ==zPJb3ngM1sGjXlfX2+Qk6rbdv1I=ucInIpBmFcnkQK7zF4VO1w==</bind-password>
+            <ssl>no</ssl>
+            <base>DC=acme,DC=local</base>
+          </entry>
+        </ldap>
+      </server-profile>
+
+  - name: corp-ldap-auth-profile
+    xpath: /config/shared
+    element: |-
+      <authentication-profile>
+        <entry name="Corp-LDAP">
+          <method>
+            <ldap>
+              <passwd-exp-days>18</passwd-exp-days>
+              <server-profile>dc.acme.local</server-profile>
+              <login-attribute>sAMAccountName</login-attribute>
+            </ldap>
+          </method>
+          <multi-factor-auth>
+            <mfa-enable>no</mfa-enable>
+          </multi-factor-auth>
+          <allow-list>
+            <member>all</member>
+          </allow-list>
+        </entry>
+        <entry name="Local-Auth">
+          <multi-factor-auth>
+            <mfa-enable>no</mfa-enable>
+          </multi-factor-auth>
+          <method>
+            <local-database/>
+          </method>
+          <allow-list>
+            <member>all</member>
+          </allow-list>
+        </entry>
+      </authentication-profile>
+
+  - name: local-user-db
+    xpath: /config/shared
+    element: |-
+      <local-user-database>
+        <user>
+          <entry name="gpuser1">
+            <phash>{{ gpuser1_password | md5_hash }}</phash>
+          </entry>
+        </user>
+      </local-user-database>
+
+  - name: allow-ping
+    xpath: /config/devices/entry[@name="localhost.localdomain"]/network/profiles
+    element: |-
+      <interface-management-profile>
+        <entry name="Allow Ping">
+          <ping>yes</ping>
+        </entry>
+      </interface-management-profile>
+
+  - name: ethernet1-2
+    xpath: /config/devices/entry[@name="localhost.localdomain"]/network/interface/ethernet
+    element: |-
+      <entry name="{{ untrust_if }}">
+        <layer3>
+          <ipv6>
+            <neighbor-discovery>
+              <router-advertisement>
+                <enable>no</enable>
+              </router-advertisement>
+            </neighbor-discovery>
+          </ipv6>
+          <ndp-proxy>
+            <enabled>no</enabled>
+          </ndp-proxy>
+          <ip>
+            <entry name="{{ untrust_if_ip }}"/>
+          </ip>
+          <lldp>
+            <enable>no</enable>
+          </lldp>
+          <interface-management-profile>Allow Ping</interface-management-profile>
+        </layer3>
+      </entry>
+
+  - name: ethernet1-1
+    xpath: /config/devices/entry[@name="localhost.localdomain"]/network/interface/ethernet
+    element: |-
+      <entry name="{{ trust_if }}">
+        <layer3>
+          <ipv6>
+            <neighbor-discovery>
+              <router-advertisement>
+                <enable>no</enable>
+              </router-advertisement>
+            </neighbor-discovery>
+          </ipv6>
+          <ndp-proxy>
+            <enabled>no</enabled>
+          </ndp-proxy>
+          <ip>
+            <entry name="{{ trust_if_ip }}"/>
+          </ip>
+          <lldp>
+            <enable>no</enable>
+          </lldp>
+          <interface-management-profile>Allow Ping</interface-management-profile>
+        </layer3>
+      </entry>
+
+  - name: tunnel
+    xpath: /config/devices/entry[@name="localhost.localdomain"]/network/interface
+    element: |-
+      <tunnel>
+        <units>
+          <entry name="{{ vpn_tunnel_if }}">
+            <ip>
+              <entry name="{{ vpn_tunnel_ip }}"/>
+            </ip>
+            <comment>GlobalProtect Users</comment>
+          </entry>
+        </units>
+      </tunnel>
+
+  - name: gp-gateway
+    xpath: /config/devices/entry[@name="localhost.localdomain"]/network
+    element: |-
+      <tunnel>
+        <global-protect-gateway>
+          <entry name="Gateway-1-N">
+            <local-address>
+              <ip>
+                <ipv4>{{ untrust_if_ip }}</ipv4>
+              </ip>
+              <interface>{{ untrust_if }}</interface>
+              <ip-address-family>ipv4</ip-address-family>
+            </local-address>
+            <client>
+              <exclude-video-traffic>
+                <applications/>
+                <enabled>no</enabled>
+              </exclude-video-traffic>
+              <dns-server>
+                <primary>{{ dns_server_primary }}</primary>
+                <secondary>{{ dns_server_secondary }}</secondary>
+              </dns-server>
+            </client>
+            <ipsec>
+              <third-party-client>
+                <enable>no</enable>
+              </third-party-client>
+            </ipsec>
+            <ip-pool/>
+            <tunnel-interface>{{ vpn_tunnel_if }}</tunnel-interface>
+          </entry>
+        </global-protect-gateway>
+      </tunnel>
+
+  - name: virtual-router
+    xpath: /config/devices/entry[@name="localhost.localdomain"]/network/virtual-router/entry[@name="default"]
+    element: |-
+      <interface>
+        <member>{{ trust_if }}</member>
+        <member>{{ untrust_if }}</member>
+        <member>{{ vpn_tunnel_if }}</member>
+      </interface>
+      <routing-table>
+        <ip>
+          <static-route>
+            <entry name="default">
+              <path-monitor>
+                <enable>no</enable>
+                <failure-condition>any</failure-condition>
+                <hold-time>2</hold-time>
+              </path-monitor>
+              <nexthop>
+                <ip-address>{{ default_gateway }}</ip-address>
+              </nexthop>
+              <bfd>
+                <profile>None</profile>
+              </bfd>
+              <metric>10</metric>
+              <destination>0.0.0.0/0</destination>
+              <route-table>
+                <unicast/>
+              </route-table>
+            </entry>
+          </static-route>
+        </ip>
+      </routing-table>
+
+  - name: untrust-zone
+    xpath: /config/devices/entry[@name="localhost.localdomain"]/vsys/entry[@name="vsys1"]/zone
+    element: |-
+      <entry name="{{ untrust_zone }}">
+        <network>
+          <layer3>
+            <member>{{ untrust_if }}</member>
+          </layer3>
+        </network>
+      </entry>
+
+  - name: trust-zone
+    xpath: /config/devices/entry[@name="localhost.localdomain"]/vsys/entry[@name="vsys1"]/zone
+    element: |-
+      <entry name="{{ trust_zone }}">
+        <network>
+          <layer3>
+            <member>{{ trust_if }}</member>
+          </layer3>
+        </network>
+      </entry>
+
+  - name: vpn-zone
+    xpath: /config/devices/entry[@name="localhost.localdomain"]/vsys/entry[@name="vsys1"]/zone
+    element: |-
+      <entry name="{{ vpn_zone }}">
+        <network>
+          <layer3>
+            <member>{{ vpn_tunnel_if }}</member>
+          </layer3>
+        </network>
+        <enable-user-identification>yes</enable-user-identification>
+      </entry>
+
+  - name: global-protect-283032
+    xpath: /config/devices/entry[@name="localhost.localdomain"]/vsys/entry[@name="vsys1"]
+    element: |-
+      <global-protect>
+        <global-protect-gateway>
+          <entry name="GP-Gateway">
+            <roles>
+              <entry name="default">
+                <login-lifetime>
+                  <days>30</days>
+                </login-lifetime>
+                <inactivity-logout>
+                  <hours>3</hours>
+                </inactivity-logout>
+                <disconnect-on-idle>
+                  <minutes>180</minutes>
+                </disconnect-on-idle>
+              </entry>
+            </roles>
+            <client-auth>
+              <entry name="Local-Users">
+                <os>Any</os>
+                <authentication-profile>Local-Auth</authentication-profile>
+                <authentication-message>Enter login credentials</authentication-message>
+                <user-credential-or-client-cert-required>no</user-credential-or-client-cert-required>
+                <username-label>Username</username-label>
+                <password-label>Password</password-label>
+              </entry>
+            </client-auth>
+            <remote-user-tunnel-configs>
+              <entry name="All Users">
+                <split-tunneling>
+                  <access-route>
+                    <member>0.0.0.0/0</member>
+                  </access-route>
+                </split-tunneling>
+                <source-user>
+                  <member>any</member>
+                </source-user>
+                <ip-pool>
+                  <member>{{ vpn_tunnel_ip_pool }}</member>
+                </ip-pool>
+                <os>
+                  <member>any</member>
+                </os>
+                <retrieve-framed-ip-address>no</retrieve-framed-ip-address>
+                <no-direct-access-to-local-network>no</no-direct-access-to-local-network>
+              </entry>
+            </remote-user-tunnel-configs>
+            <ssl-tls-service-profile>GlobalProtect</ssl-tls-service-profile>
+            <tunnel-mode>yes</tunnel-mode>
+            <remote-user-tunnel>{{ vpn_tunnel_if }}</remote-user-tunnel>
+          </entry>
+        </global-protect-gateway>
+        <global-protect-portal>
+          <entry name="GP-Portal">
+            <portal-config>
+              <local-address>
+                <ip>
+                  <ipv4>{{ untrust_if_ip }}</ipv4>
+                </ip>
+                <interface>{{ untrust_if }}</interface>
+              </local-address>
+              <client-auth>
+                <entry name="Local Users">
+                  <user-credential-or-client-cert-required>no</user-credential-or-client-cert-required>
+                  <os>Any</os>
+                  <authentication-profile>Local-Auth</authentication-profile>
+                  <authentication-message>Enter login credentials</authentication-message>
+                  <username-label>Username</username-label>
+                  <password-label>Password</password-label>
+                </entry>
+              </client-auth>
+              <custom-login-page>factory-default</custom-login-page>
+              <custom-home-page>factory-default</custom-home-page>
+              <ssl-tls-service-profile>GlobalProtect</ssl-tls-service-profile>
+            </portal-config>
+            <client-config>
+              <configs>
+                <entry name="User Config">
+                  <hip-collection>
+                    <max-wait-time>20</max-wait-time>
+                    <collect-hip-data>yes</collect-hip-data>
+                  </hip-collection>
+                  <gateways>
+                    <external>
+                      <list>
+                        <entry name="{{ portal_cert_fqdn }}">
+                          <fqdn>{{ portal_cert_fqdn }}</fqdn>
+                          <priority-rule>
+                            <entry name="Any">
+                              <priority>1</priority>
+                            </entry>
+                          </priority-rule>
+                          <manual>no</manual>
+                        </entry>
+                      </list>
+                      <cutoff-time>5</cutoff-time>
+                    </external>
+                  </gateways>
+                  <authentication-override>
+                    <generate-cookie>no</generate-cookie>
+                  </authentication-override>
+                  <source-user>
+                    <member>any</member>
+                  </source-user>
+                  <os>
+                    <member>any</member>
+                  </os>
+                  <agent-ui>
+                    <max-agent-user-overrides>0</max-agent-user-overrides>
+                    <agent-user-override-timeout>0</agent-user-override-timeout>
+                  </agent-ui>
+                  <gp-app-config>
+                    <config>
+                      <entry name="connect-method">
+                        <value>
+                          <member>user-logon</member>
+                        </value>
+                      </entry>
+                      <entry name="refresh-config-interval">
+                        <value>
+                          <member>24</member>
+                        </value>
+                      </entry>
+                      <entry name="agent-user-override">
+                        <value>
+                          <member>allowed</member>
+                        </value>
+                      </entry>
+                      <entry name="uninstall">
+                        <value>
+                          <member>allowed</member>
+                        </value>
+                      </entry>
+                      <entry name="client-upgrade">
+                        <value>
+                          <member>prompt</member>
+                        </value>
+                      </entry>
+                      <entry name="enable-signout">
+                        <value>
+                          <member>yes</member>
+                        </value>
+                      </entry>
+                      <entry name="use-sso">
+                        <value>
+                          <member>yes</member>
+                        </value>
+                      </entry>
+                      <entry name="use-sso-macos">
+                        <value>
+                          <member>no</member>
+                        </value>
+                      </entry>
+                      <entry name="logout-remove-sso">
+                        <value>
+                          <member>yes</member>
+                        </value>
+                      </entry>
+                      <entry name="krb-auth-fail-fallback">
+                        <value>
+                          <member>yes</member>
+                        </value>
+                      </entry>
+                      <entry name="retry-tunnel">
+                        <value>
+                          <member>30</member>
+                        </value>
+                      </entry>
+                      <entry name="retry-timeout">
+                        <value>
+                          <member>5</member>
+                        </value>
+                      </entry>
+                      <entry name="enforce-globalprotect">
+                        <value>
+                          <member>no</member>
+                        </value>
+                      </entry>
+                      <entry name="captive-portal-exception-timeout">
+                        <value>
+                          <member>0</member>
+                        </value>
+                      </entry>
+                      <entry name="traffic-blocking-notification-delay">
+                        <value>
+                          <member>15</member>
+                        </value>
+                      </entry>
+                      <entry name="display-traffic-blocking-notification-msg">
+                        <value>
+                          <member>yes</member>
+                        </value>
+                      </entry>
+                      <entry name="allow-traffic-blocking-notification-dismissal">
+                        <value>
+                          <member>yes</member>
+                        </value>
+                      </entry>
+                      <entry name="display-captive-portal-detection-msg">
+                        <value>
+                          <member>no</member>
+                        </value>
+                      </entry>
+                      <entry name="captive-portal-notification-delay">
+                        <value>
+                          <member>5</member>
+                        </value>
+                      </entry>
+                      <entry name="certificate-store-lookup">
+                        <value>
+                          <member>user-and-machine</member>
+                        </value>
+                      </entry>
+                      <entry name="scep-certificate-renewal-period">
+                        <value>
+                          <member>7</member>
+                        </value>
+                      </entry>
+                      <entry name="retain-connection-smartcard-removal">
+                        <value>
+                          <member>yes</member>
+                        </value>
+                      </entry>
+                      <entry name="enable-advanced-view">
+                        <value>
+                          <member>yes</member>
+                        </value>
+                      </entry>
+                      <entry name="enable-do-not-display-this-welcome-page-again">
+                        <value>
+                          <member>yes</member>
+                        </value>
+                      </entry>
+                      <entry name="rediscover-network">
+                        <value>
+                          <member>yes</member>
+                        </value>
+                      </entry>
+                      <entry name="resubmit-host-info">
+                        <value>
+                          <member>yes</member>
+                        </value>
+                      </entry>
+                      <entry name="can-change-portal">
+                        <value>
+                          <member>yes</member>
+                        </value>
+                      </entry>
+                      <entry name="can-continue-if-portal-cert-invalid">
+                        <value>
+                          <member>yes</member>
+                        </value>
+                      </entry>
+                      <entry name="show-agent-icon">
+                        <value>
+                          <member>yes</member>
+                        </value>
+                      </entry>
+                      <entry name="user-switch-tunnel-rename-timeout">
+                        <value>
+                          <member>0</member>
+                        </value>
+                      </entry>
+                      <entry name="pre-logon-tunnel-rename-timeout">
+                        <value>
+                          <member>-1</member>
+                        </value>
+                      </entry>
+                      <entry name="preserve-tunnel-upon-user-logoff-timeout">
+                        <value>
+                          <member>0</member>
+                        </value>
+                      </entry>
+                      <entry name="show-system-tray-notifications">
+                        <value>
+                          <member>no</member>
+                        </value>
+                      </entry>
+                      <entry name="ipsec-failover-ssl">
+                        <value>
+                          <member>0</member>
+                        </value>
+                      </entry>
+                      <entry name="ssl-only-selection">
+                        <value>
+                          <member>0</member>
+                        </value>
+                      </entry>
+                      <entry name="max-internal-gateway-connection-attempts">
+                        <value>
+                          <member>0</member>
+                        </value>
+                      </entry>
+                      <entry name="portal-timeout">
+                        <value>
+                          <member>5</member>
+                        </value>
+                      </entry>
+                      <entry name="connect-timeout">
+                        <value>
+                          <member>5</member>
+                        </value>
+                      </entry>
+                      <entry name="receive-timeout">
+                        <value>
+                          <member>30</member>
+                        </value>
+                      </entry>
+                      <entry name="enforce-dns">
+                        <value>
+                          <member>yes</member>
+                        </value>
+                      </entry>
+                      <entry name="append-local-search-domain">
+                        <value>
+                          <member>no</member>
+                        </value>
+                      </entry>
+                      <entry name="flush-dns">
+                        <value>
+                          <member>no</member>
+                        </value>
+                      </entry>
+                      <entry name="proxy-multiple-autodetect">
+                        <value>
+                          <member>no</member>
+                        </value>
+                      </entry>
+                      <entry name="use-proxy">
+                        <value>
+                          <member>yes</member>
+                        </value>
+                      </entry>
+                      <entry name="wsc-autodetect">
+                        <value>
+                          <member>yes</member>
+                        </value>
+                      </entry>
+                      <entry name="mfa-enabled">
+                        <value>
+                          <member>no</member>
+                        </value>
+                      </entry>
+                      <entry name="mfa-listening-port">
+                        <value>
+                          <member>4501</member>
+                        </value>
+                      </entry>
+                      <entry name="mfa-notification-msg">
+                        <value>
+                          <member>You have attempted to access a protected resource that requires additional authentication. Proceed to authenticate at</member>
+                        </value>
+                      </entry>
+                      <entry name="mfa-prompt-suppress-time">
+                        <value>
+                          <member>0</member>
+                        </value>
+                      </entry>
+                      <entry name="ipv6-preferred">
+                        <value>
+                          <member>yes</member>
+                        </value>
+                      </entry>
+                      <entry name="init-panel">
+                        <value>
+                          <member>no</member>
+                        </value>
+                      </entry>
+                    </config>
+                  </gp-app-config>
+                  <save-user-credentials>1</save-user-credentials>
+                  <portal-2fa>no</portal-2fa>
+                  <manual-only-gateway-2fa>no</manual-only-gateway-2fa>
+                  <internal-gateway-2fa>no</internal-gateway-2fa>
+                  <auto-discovery-external-gateway-2fa>no</auto-discovery-external-gateway-2fa>
+                  <mdm-enrollment-port>443</mdm-enrollment-port>
+                </entry>
+              </configs>
+              <root-ca>
+                <entry name="{{ ca_cert_name }}">
+                  <install-in-cert-store>yes</install-in-cert-store>
+                </entry>
+              </root-ca>
+              <agent-user-override-key>-AQ==9EIXqBFzhp4IZxdTxSVTZG/12Vs=iH76LFLerpHJ1S680bBopQ==</agent-user-override-key>
+            </client-config>
+            <satellite-config>
+              <client-certificate>
+                <local/>
+              </client-certificate>
+            </satellite-config>
+          </entry>
+        </global-protect-portal>
+      </global-protect>
+
+  - name: security-rules
+    xpath: /config/devices/entry[@name="localhost.localdomain"]/vsys/entry[@name="vsys1"]/rulebase
+    element: |-
+      <security>
+        <rules>
+          <entry name="Outbound Access" uuid="80e77897-5484-429e-95a7-a5ca1ac8d648">
+            <to>
+              <member>{{ untrust_zone }}</member>
+            </to>
+            <from>
+              <member>{{ vpn_zone }}</member>
+              <member>{{ trust_zone }}</member>
+            </from>
+            <source>
+              <member>any</member>
+            </source>
+            <destination>
+              <member>any</member>
+            </destination>
+            <source-user>
+              <member>any</member>
+            </source-user>
+            <category>
+              <member>any</member>
+            </category>
+            <application>
+              <member>any</member>
+            </application>
+            <service>
+              <member>application-default</member>
+            </service>
+            <hip-profiles>
+              <member>any</member>
+            </hip-profiles>
+            <action>allow</action>
+          </entry>
+          <entry name="VPN to Trust" uuid="7b28f871-a087-46e8-b214-b6d48d73f0d2">
+            <to>
+              <member>{{ trust_zone }}</member>
+            </to>
+            <from>
+              <member>{{ vpn_zone }}</member>
+            </from>
+            <source>
+              <member>any</member>
+            </source>
+            <destination>
+              <member>any</member>
+            </destination>
+            <source-user>
+              <member>any</member>
+            </source-user>
+            <category>
+              <member>any</member>
+            </category>
+            <application>
+              <member>any</member>
+            </application>
+            <service>
+              <member>application-default</member>
+            </service>
+            <hip-profiles>
+              <member>any</member>
+            </hip-profiles>
+            <action>allow</action>
+          </entry>
+        </rules>
+      </security>
+
+  - name: nat-rules
+    xpath: /config/devices/entry[@name="localhost.localdomain"]/vsys/entry[@name="vsys1"]/rulebase
+    element: |-
+      <nat>
+        <rules>
+          <entry name="Outbound" uuid="c3c27436-c0ba-45d5-a4c6-0e6e6fccfb17">
+            <source-translation>
+              <dynamic-ip-and-port>
+                <interface-address>
+                  <ip>{{ untrust_if_ip }}</ip>
+                  <interface>{{ untrust_if }}</interface>
+                </interface-address>
+              </dynamic-ip-and-port>
+            </source-translation>
+            <to>
+              <member>{{ untrust_zone }}</member>
+            </to>
+            <from>
+              <member>{{ vpn_zone }}</member>
+              <member>{{ trust_zone }}</member>
+            </from>
+            <source>
+              <member>any</member>
+            </source>
+            <destination>
+              <member>any</member>
+            </destination>
+            <service>any</service>
+          </entry>
+        </rules>
+      </nat>
+
+  - name: default-security-rules
+    xpath: /config/devices/entry[@name="localhost.localdomain"]/vsys/entry[@name="vsys1"]/rulebase
+    element: |-
+      <default-security-rules>
+        <rules>
+          <entry name="interzone-default" uuid="17f7725f-bbde-47c3-b41c-6643548bdb30">
+            <action>deny</action>
+            <log-start>no</log-start>
+            <log-end>yes</log-end>
+          </entry>
+        </rules>
+      </default-security-rules>
