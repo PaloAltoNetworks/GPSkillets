@@ -1,16 +1,15 @@
-name: 9.0_pre_logon
+name: 9.0_pre_logon_set_commands
 
 # label used for menu selection
-label: 9.0 Pre-Logon VPN configuration
-description: Pre-Logon VPN per GlobalProtect Quick Configs
+label: 9.0 Pre-Logon VPN configuration using set commands
+description: Pre-Logon VPN per GlobalProtect Quick Configs using set commands
 dependency:
 
 # type of device configuration
-type: panos
+type: template
 
 # grouping of like snippets for dynamic menu creation in pan-cnc
 labels:
-  service_type: globalprotect
   collection: globalprotect
 
 variables:
