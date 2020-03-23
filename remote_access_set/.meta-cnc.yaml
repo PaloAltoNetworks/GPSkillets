@@ -1,0 +1,104 @@
+name: 9.0_remote_access
+
+# label used for menu selection
+label: 9.0 Remote Access VPN configuration
+description: Remote Access VPN per GlobalProtect Quick Configs
+dependency:
+
+# type of device configuration
+type: panos
+
+# grouping of like snippets for dynamic menu creation in pan-cnc
+labels:
+  service_type: globalprotect
+  collection: globalprotect
+
+variables:
+  - name: ca_cert_name
+    description: Certificate name for self-signed CA cert
+    default: GlobalProtect_CA
+    type_hint: text
+
+  - name: portal_cert_name
+    description: Certificate name for GlobalProtect portal cert
+    default: GlobalProtect_Portal
+    type_hint: text
+
+  - name: portal_cert_fqdn
+    description: Certificate FQDN for GlobalProtect portal cert
+    default: gp.acme.com
+    type_hint: text
+
+  - name: trust_if
+    description: Trusted interface name
+    default: ethernet1/1
+    type_hint: text
+
+  - name: trust_if_ip
+    description: Trusted interface IP address/netmask
+    default: 192.168.45.20/24
+    type_hint: text
+
+  - name: trust_zone
+    description: Trusted zone name
+    default: l3-trust
+    type_hint: text
+
+  - name: untrust_if
+    description: Untrusted interface name
+    default: ethernet1/2
+    type_hint: text
+
+  - name: untrust_if_ip
+    description: Untrusted interface IP address/netmask
+    default: 192.168.55.20/24
+    type_hint: text
+
+  - name: untrust_zone
+    description: Untrusted zone name
+    default: l3-untrust
+    type_hint: text
+
+  - name: vpn_zone
+    description: VPN zone name
+    default: corp-vpn
+    type_hint: text
+
+  - name: vpn_tunnel_if
+    description: GlobalProtect tunnel interface name
+    default: tunnel.2
+    type_hint: text
+
+  - name: vpn_tunnel_ip
+    description: GlobalProtect interface IP address/netmask
+    default: 10.31.32.1/24
+    type_hint: text
+
+  - name: vpn_tunnel_ip_pool
+    description: GlobalProtect user IP pool
+    default: 10.31.32.3-10.31.32.118
+    type_hint: text
+
+  - name: default_gateway
+    description: Default gateway for virtual router default
+    default: 192.168.55.2
+    type_hint: text
+
+  - name: dns_server_primary
+    description: Primary DNS server distributed to GP users
+    default: 8.8.8.8
+    type_hint: text
+
+  - name: dns_server_secondary
+    description: Secondary DNS server distributed to GP users
+    default: 8.8.4.4
+    type_hint: text
+
+  - name: gpuser1_password
+    descriptions: Password for local user gpuser1
+    default: gpuser1
+    type_hint: text
+
+snippets:
+  - name: remote_access_set
+    file: remote_access_set.conf
