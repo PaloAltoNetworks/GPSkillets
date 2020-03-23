@@ -99,6 +99,11 @@ variables:
     default: 8.8.4.4
     type_hint: text
 
+  - name: gpuser1_password
+    descriptions: Password for local user gpuser1
+    default: gpuser1
+    type_hint: text
+
 snippets:
   - name: ca_cert_gen
     cmd: op
@@ -245,7 +250,7 @@ snippets:
       <local-user-database>
         <user>
           <entry name="gpuser1">
-            <phash>$1$eypmckmc$4F/him1B/XxtYywp2JeS9/</phash>
+            <phash>{{ gpuser1_password | md5_hash }}</phash>
           </entry>
         </user>
       </local-user-database>
