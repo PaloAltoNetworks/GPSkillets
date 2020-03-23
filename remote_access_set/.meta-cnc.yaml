@@ -1,12 +1,12 @@
-name: 9.0_remote_access
+name: 9.0_remote_access_set_commands
 
 # label used for menu selection
-label: 9.0 Remote Access VPN configuration
-description: Remote Access VPN per GlobalProtect Quick Configs
+label: 9.0 Remote Access VPN configuration using set commands
+description: Remote Access VPN per GlobalProtect Quick Configs using set commands
 dependency:
 
 # type of device configuration
-type: panos
+type: template
 
 # grouping of like snippets for dynamic menu creation in pan-cnc
 labels:
