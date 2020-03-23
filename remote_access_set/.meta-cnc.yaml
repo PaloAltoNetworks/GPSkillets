@@ -10,7 +10,6 @@ type: template
 
 # grouping of like snippets for dynamic menu creation in pan-cnc
 labels:
-  service_type: globalprotect
   collection: globalprotect
 
 variables:
