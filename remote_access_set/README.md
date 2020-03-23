@@ -16,3 +16,6 @@ This skillet assumes no config exists on the firewall.
 ## Usage
 
 Run the skillet, copy/paste set commands into the CLI, then download/activate the desired GlobalProtect client on the gateway.
+
+Note: When pasting to the CLI ```set cli scripting-mode on``` can be used
+to enhance entry of large blocks of set commands.
