@@ -21,6 +21,7 @@ in each directory for any changes.
 ## Authors
 
 * Michael Richardson ([@mrichardson03](https://github.com/mrichardson03/))
+* Scott Shoaf ([@scotchoaf](https://github.com/scotchoaf))
 
 ## Support Policy
 
