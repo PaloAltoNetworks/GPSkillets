@@ -5,6 +5,7 @@
 GlobalProtect configured per the Remote Access VPN with Pre-Logon [Quick Config](https://docs.paloaltonetworks.com/globalprotect/9-0/globalprotect-admin/globalprotect-quick-configs/remote-access-vpn-with-pre-logon.html),
 with the following changes:
 
+- Default interfaces are swapped: interface ethernet1/1 is l3-untrust, ethernet1/2 is l3-trust.
 - A root CA is generated on the firewall, and is used to generate a self-signed cert for the GlobalProtect portal and a
   shared machine certificate that needs to be distributed to clients.
 - Client connection method has been changed from *on-demand* to *always-on*.
