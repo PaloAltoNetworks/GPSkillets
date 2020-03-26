@@ -35,7 +35,7 @@ variables:
 
   - name: trust_if
     description: Trusted interface name
-    default: ethernet1/1
+    default: ethernet1/2
     type_hint: text
 
   - name: trust_if_ip
@@ -50,7 +50,7 @@ variables:
 
   - name: untrust_if
     description: Untrusted interface name
-    default: ethernet1/2
+    default: ethernet1/1
     type_hint: text
 
   - name: untrust_if_ip
