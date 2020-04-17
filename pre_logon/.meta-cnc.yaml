@@ -706,11 +706,6 @@ snippets:
                           <member>0</member>
                         </value>
                       </entry>
-                      <entry name="show-system-tray-notifications">
-                        <value>
-                          <member>no</member>
-                        </value>
-                      </entry>
                       <entry name="ipsec-failover-ssl">
                         <value>
                           <member>0</member>
